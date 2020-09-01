@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os, yaml, tempfile
+import stat
 from subprocess import Popen
 
 g = globals()
@@ -16,13 +17,13 @@ setitem('_profile', os.path.join(DIRECTORY, 'default.yaml'))
 def set(name, opts={}):
     setitem('set_profile', _load())
     setitem('set_result', {})
-    if opts.has_key('data'):
+    if 'data' in opts:
         setitem('set_result', opts['data'])
     else:
-        if not os.environ.has_key('EDITOR'):
+        if 'EDITOR' not in os.environ:
             return {}
         setitem('set_if_t', tempfile.NamedTemporaryFile())
-        setitem('set_if_c', yaml.dump(opts['config'] if opts.has_key('config') else get(name) ,default_flow_style=False))
+        setitem('set_if_c', yaml.dump(opts['config'] if 'config' in opts else get(name) ,default_flow_style=False))
         set_if_t.write(c)
         set_if_t.flush()
         setitem('set_if_path', os.path.abspath(t.name))
@@ -42,8 +43,8 @@ def set(name, opts={}):
 
 get = lambda name, opts={} :(
     [setitem('load_data', _load())] and \
-    [setitem('get_ret', load_data[name] if load_data.has_key(name) else {} )] and \
-    [opts.has_key('require') and \
+    [setitem('get_ret', load_data[name] if name in load_data else {} )] and \
+    ['require' in opts and \
         [setitem('get_for_keys', set(opts['require'].keys()) - set(get_ret.keys()))] and \
         [get_for_keys and \
             [[setitem('get_for_ret_' + key,opts['require'][key])] for key in get_for_keys] and \
@@ -61,29 +62,29 @@ switch = lambda name, opts={} :(
     switch_ret)
 
 _load = lambda :(
-        [[os.mkdir(DIRECTORY)] and [os.chmod(DIRECTORY, 0700)] if not os.path.exists(DIRECTORY) else True]
+        [[os.mkdir(DIRECTORY)] and [os.chmod(DIRECTORY, stat.S_IRUSR|stat.S_IWUSR|stat.S_IXUSR)] if not os.path.exists(DIRECTORY) else True]
         and
         [[yaml.dump({'profile' : 'default'}, open(_config, 'w'), default_flow_style=False)] 
-         and [os.chmod(_config, 0600)] if not os.path.exists(_config) else True]
+         and [os.chmod(_config, stat.S_IRUSR|stat.S_IWUSR)] if not os.path.exists(_config) else True]
         and
         [switch(config()['profile'])]
         and 
         [[yaml.dump({}, 
                     open(_profile, 'w'), 
                     default_flow_style=False)]
-         and [os.chmod(_profile, 0600)] if not os.path.exists(_profile) else True]
+         and [os.chmod(_profile, stat.S_IRUSR|stat.S_IWUSR)] if not os.path.exists(_profile) else True]
         
         and (yaml.load(open(_profile)) or {}))
 
 config = lambda : yaml.load(open(_config))
 
 def func_print(data):
-    print data;
+    print(data);
 
 if __name__ == '__main__':
     setitem('__main__config', get('twitter.com',{'require': {'email':'your email','password':'your password'}}))
-    print __main__config
-    print __main__config['email']
-    print __main__config['password']
+    print(__main__config)
+    print(__main__config['email'])
+    print(__main__config['password'])
 
 
