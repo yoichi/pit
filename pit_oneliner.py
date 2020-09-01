@@ -33,7 +33,7 @@ def set(name, opts={}):
             func_print('No Changes')
             return set_profile[name]
         
-        setitem('set_result', yaml.load(result))
+        setitem('set_result', yaml.safe_load(result))
 
     setitem('set_profile_'+ name, set_result)
     yaml.dump(set_profile,
@@ -74,9 +74,9 @@ _load = lambda :(
                     default_flow_style=False)]
          and [os.chmod(_profile, stat.S_IRUSR|stat.S_IWUSR)] if not os.path.exists(_profile) else True]
         
-        and (yaml.load(open(_profile)) or {}))
+        and (yaml.safe_load(open(_profile)) or {}))
 
-config = lambda : yaml.load(open(_config))
+config = lambda : yaml.safe_load(open(_config))
 
 def func_print(data):
     print(data);

@@ -35,7 +35,7 @@ class Pit:
                     return profile[name]
                 return
 
-            result = yaml.load(result)
+            result = yaml.safe_load(result)
 
         profile[name] = result
         yaml.dump(profile,
@@ -86,11 +86,11 @@ class Pit:
                       open(Pit._profile, 'w'), 
                       default_flow_style=False)
             os.chmod(Pit._profile, 0o600)
-        return yaml.load(open(Pit._profile)) or {}
+        return yaml.safe_load(open(Pit._profile)) or {}
 
     @staticmethod
     def config():
-        return yaml.load(open(Pit._config))
+        return yaml.safe_load(open(Pit._config))
 
 if __name__ == '__main__':
     config = Pit.get('34twitter.com',{'require': {'email':'your email','password':'your password'}})
